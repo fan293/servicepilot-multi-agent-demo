@@ -27,13 +27,17 @@ const escalationListEl = document.querySelector("#escalationList");
 const evidenceListEl = document.querySelector("#evidenceList");
 const reportPreviewEl = document.querySelector("#reportPreview");
 const agentTraceEl = document.querySelector("#agentTrace");
+const agentLaneEl = document.querySelector("#agentLane");
 
 const sampleButtons = [...document.querySelectorAll("[data-sample]")];
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
+const tabButtons = [...document.querySelectorAll("[data-tab]")];
+const tabPanels = [...document.querySelectorAll(".tab-panel")];
 
 const state = {
   sample: "refund",
-  mode: "standard"
+  mode: "standard",
+  tab: "overview"
 };
 
 const samples = {
@@ -81,34 +85,34 @@ const modeConfig = {
 const issueRules = [
   {
     name: "退款争议",
-    description: "涉及退款时效、退款规则、到账延迟或审核状态不清。",
+    description: "退款时效、审核状态或到账预期不清。",
     keywords: ["退款", "到账", "审核", "签收", "补偿"]
   },
   {
     name: "物流异常",
-    description: "涉及发货延迟、物流停滞、催单、承运商扫描异常。",
+    description: "物流停滞、催单、承运商扫描延迟。",
     keywords: ["物流", "揽收", "发货", "催派", "承运商", "在路上"]
   },
   {
     name: "会员续费投诉",
-    description: "涉及自动续费、扣费提醒、退款诉求和会员体验争议。",
+    description: "自动续费、扣费提醒、退款争议。",
     keywords: ["续费", "扣费", "会员", "自动续费", "提醒"]
   },
   {
-    name: "规则说明冲突",
-    description: "用户感知到页面说明、政策口径或客服话术存在冲突。",
+    name: "规则冲突",
+    description: "页面说明、政策口径或客服话术冲突。",
     keywords: ["规则", "不一致", "为什么", "说明", "口径"]
   },
   {
     name: "升级投诉风险",
-    description: "用户已表达强烈不满，存在差评、投诉或流失风险。",
+    description: "用户已进入强烈不满或投诉状态。",
     keywords: ["投诉", "差评", "不满意", "非常不满意", "太差了", "不接受"]
   }
 ];
 
 const negativeWords = ["投诉", "不满意", "太差", "为什么", "还没", "一直", "急着", "不接受", "马上", "尽快", "很久", "反复"];
 const positiveWords = ["谢谢", "理解", "可以", "麻烦了", "辛苦了"];
-const empathyWords = ["抱歉", "理解", "久等", "给您带来困扰", "着急", "顾虑"];
+const empathyWords = ["抱歉", "理解", "久等", "困扰", "着急", "顾虑"];
 const ownershipWords = ["我来帮您", "我先帮您", "我这边", "已为您", "帮您登记", "帮您关闭", "继续为您", "为您升级"];
 const timingWords = ["今天", "今晚", "明天", "18:00", "17:00", "22:00", "中午前", "前", "稍后", "短信同步"];
 const resolutionWords = ["升级", "工单", "加急", "短信", "回电", "补偿", "退款审核", "催派", "优先核实", "关闭自动续费"];
@@ -174,45 +178,27 @@ function parseTranscript(rawText) {
 }
 
 function sentimentLabel(score) {
-  if (score >= 72) {
-    return "较稳定";
-  }
-  if (score >= 48) {
-    return "偏紧张";
-  }
+  if (score >= 72) return "较稳定";
+  if (score >= 48) return "偏紧张";
   return "高波动";
 }
 
 function serviceLabel(score) {
-  if (score >= 86) {
-    return "表现优秀";
-  }
-  if (score >= 72) {
-    return "整体稳妥";
-  }
-  if (score >= 58) {
-    return "可继续优化";
-  }
+  if (score >= 86) return "表现优秀";
+  if (score >= 72) return "整体稳妥";
+  if (score >= 58) return "可继续优化";
   return "建议重点复盘";
 }
 
 function riskLabel(score) {
-  if (score >= 75) {
-    return "高风险";
-  }
-  if (score >= 50) {
-    return "中风险";
-  }
+  if (score >= 75) return "高风险";
+  if (score >= 50) return "中风险";
   return "低风险";
 }
 
 function severityFromText(text) {
-  if (/投诉|差评|今天必须|不接受|流失|升级/.test(text)) {
-    return "high";
-  }
-  if (/不一致|延迟|没有同步|规则|催单|退款/.test(text)) {
-    return "medium";
-  }
+  if (/投诉|差评|今天必须|不接受|升级/.test(text)) return "high";
+  if (/不一致|延迟|没有同步|规则|催单|退款/.test(text)) return "medium";
   return "low";
 }
 
@@ -256,7 +242,6 @@ function pickEvidence(turns) {
     score += includesAny(turn.content, resolutionWords) ? 2.1 : 0;
     score += /今天|明天|18:00|17:00|22:00/.test(turn.content) ? 1.2 : 0;
     score += /投诉|不接受|升级|补偿|退款/.test(turn.content) ? 1.6 : 0;
-
     return { ...turn, score };
   });
 
@@ -273,62 +258,36 @@ function pickEvidence(turns) {
 
 function buildSuggestions(metrics, issues, risks) {
   const suggestions = [];
-
-  if (metrics.empathyScore < 70) {
-    suggestions.push("在前两轮回复中更早表达共情，先接住用户情绪，再进入核实流程。");
-  }
-  if (metrics.clarityScore < 72) {
-    suggestions.push("给出更明确的处理路径和时间节点，避免只说“帮您核实”而没有下文。");
-  }
-  if (metrics.executionScore < 72) {
-    suggestions.push("增加闭环动作，例如短信回传、工单编号、回电时间或升级状态。");
-  }
-  if (issues.some((item) => item.name === "规则说明冲突")) {
-    suggestions.push("统一页面说明、知识库条目和客服口径，减少用户感知到的规则冲突。");
-  }
-  if (risks.some((item) => item.severity === "high")) {
-    suggestions.push("对于已出现投诉信号的会话，建议设置主管介入阈值，避免前线坐席单独承压。");
-  }
-  if (state.mode === "coach") {
-    suggestions.push("把优秀回复沉淀为标准话术模板，并加入带时限承诺的固定句式。");
-  }
-
+  if (metrics.empathyScore < 70) suggestions.push("更早表达共情，先接住情绪再进入核实流程。");
+  if (metrics.clarityScore < 72) suggestions.push("给出更明确的处理路径和时间节点，避免只说“帮您核实”。");
+  if (metrics.executionScore < 72) suggestions.push("增加闭环动作，例如短信回传、工单编号或升级状态。");
+  if (issues.some((item) => item.name === "规则冲突")) suggestions.push("统一页面说明、知识库条目和客服口径。");
+  if (risks.some((item) => item.severity === "high")) suggestions.push("出现投诉信号后应尽早触发主管介入阈值。");
+  if (state.mode === "coach") suggestions.push("把优秀回复沉淀为带时限承诺的标准话术。");
   return suggestions.slice(0, modeConfig[state.mode].suggestionDepth);
 }
 
 function buildEscalations(metrics, issues, risks) {
   const escalations = [];
-
-  if (metrics.riskScore >= 75) {
-    escalations.push("建议立即升级到主管或高级客服，避免用户继续投诉扩散。");
-  }
-  if (issues.some((item) => item.name === "退款争议")) {
-    escalations.push("退款类问题建议同步审核节点和到账预期，必要时补充补偿策略。");
-  }
-  if (issues.some((item) => item.name === "物流异常")) {
-    escalations.push("物流类问题建议触发催派或异常件排查，而不是只做被动等待。");
-  }
-  if (issues.some((item) => item.name === "会员续费投诉")) {
-    escalations.push("续费争议建议同步关闭自动续费，并给出退款审核与复核路径。");
-  }
-  if (risks.length === 0) {
-    escalations.push("当前会话无明显升级信号，可继续按标准闭环流程处理。");
-  }
-
+  if (metrics.riskScore >= 75) escalations.push("建议立即升级到主管或高级客服。");
+  if (issues.some((item) => item.name === "退款争议")) escalations.push("退款类问题建议同步审核节点和到账预期。");
+  if (issues.some((item) => item.name === "物流异常")) escalations.push("物流类问题建议触发催派或异常件排查。");
+  if (issues.some((item) => item.name === "会员续费投诉")) escalations.push("续费争议建议同步关闭自动续费并给出复核路径。");
+  if (!risks.length) escalations.push("当前无明显升级信号，可按标准闭环处理。");
   return [...new Set(escalations)].slice(0, 4);
 }
 
 function buildReply(issues, metrics) {
-  const issueNames = issues.map((item) => item.name);
-  const hasRefund = issueNames.includes("退款争议");
-  const hasShipping = issueNames.includes("物流异常");
-  const hasMembership = issueNames.includes("会员续费投诉");
+  const names = issues.map((item) => item.name);
+  const hasRefund = names.includes("退款争议");
+  const hasShipping = names.includes("物流异常");
+  const hasMembership = names.includes("会员续费投诉");
 
   let coreAction = "我这边先帮您核实当前处理状态，并为您登记优先跟进。";
   let deadline = "我会在今天 18:00 前把最新进展通过短信同步给您。";
 
   if (hasRefund) {
-    coreAction = "我这边先为您核实退款审核节点，并同步确认到账进度，若存在系统状态不同步，我会立即帮您升级加急处理。";
+    coreAction = "我这边先为您核实退款审核节点，并同步确认到账进度，如存在状态不同步，我会立即帮您升级加急处理。";
   } else if (hasShipping) {
     coreAction = "我先帮您登记物流催派，并联系承运商核实停滞原因，避免您继续反复跟进。";
     deadline = "我会在今晚 22:00 前把物流反馈结果同步给您。";
@@ -338,7 +297,6 @@ function buildReply(issues, metrics) {
   }
 
   const tone = metrics.empathyScore >= 70 ? "抱歉让您这次处理感受不好" : "非常抱歉给您带来困扰";
-
   return `${tone}。${coreAction}${deadline}如果在承诺时间内还没有结果，您可以直接回复这条会话，我会继续为您跟进并升级处理。`;
 }
 
@@ -372,186 +330,205 @@ function buildReport(summary, issues, metrics, risks, suggestions, escalations, 
 function buildTraceEntries(metrics, issues, risks, reply, escalations, suggestions) {
   return [
     {
+      index: "01",
       agent: "分诊 Agent",
       status: "success",
-      focus: "识别主诉、问题类型和客户情绪",
-      output: issues.length ? `识别为 ${issues.map((item) => item.name).join(" / ")}` : "未识别出明确分类",
-      detail: `客户情绪评分 ${metrics.emotionScore}，当前判定为 ${sentimentLabel(metrics.emotionScore)}`
+      summary: issues.length ? issues.map((item) => item.name).join(" / ") : "未识别出明确分类",
+      detail: `情绪评分 ${metrics.emotionScore}，判定为 ${sentimentLabel(metrics.emotionScore)}`
     },
     {
+      index: "02",
       agent: "规则 Agent",
-      status: issues.some((item) => item.name === "规则说明冲突") ? "warning" : "success",
-      focus: "检查规则口径、SLA 时限和承诺缺口",
-      output: issues.some((item) => item.name === "规则说明冲突") ? "检测到规则冲突信号" : "未发现明显规则冲突",
-      detail: `规范性评分 ${metrics.policyScore}，${metrics.policyScore >= 70 ? "规则说明整体稳定" : "建议统一页面说明与知识库口径"}`
+      status: issues.some((item) => item.name === "规则冲突") ? "warning" : "success",
+      summary: issues.some((item) => item.name === "规则冲突") ? "检测到规则冲突信号" : "规则口径基本稳定",
+      detail: `规范性评分 ${metrics.policyScore}`
     },
     {
+      index: "03",
       agent: "回复 Agent",
       status: metrics.executionScore >= 70 ? "success" : "warning",
-      focus: "生成更稳的客服回复和闭环承诺",
-      output: `生成 1 条带时限承诺的推荐回复`,
+      summary: "已生成带时限承诺的推荐回复",
       detail: reply
     },
     {
+      index: "04",
       agent: "升级 Agent",
       status: metrics.riskScore >= 75 ? "danger" : "warning",
-      focus: "判断是否需要主管介入、补偿或工单升级",
-      output: escalations.length ? `输出 ${escalations.length} 条升级建议` : "当前无升级建议",
-      detail: risks.length ? `识别到 ${risks.length} 个风险节点，风险等级为 ${riskLabel(metrics.riskScore)}` : "未识别明显风险节点"
+      summary: escalations.length ? `输出 ${escalations.length} 条升级建议` : "当前无升级建议",
+      detail: `识别到 ${risks.length} 个风险节点`
     },
     {
+      index: "05",
       agent: "复盘 Agent",
       status: "success",
-      focus: "汇总质检结论、改进建议和复盘报告",
-      output: `生成 ${suggestions.length} 条改进建议和完整复盘报告`,
-      detail: "已将关键结论、风险节点、升级建议和推荐回复汇总为可复制报告"
+      summary: `生成 ${suggestions.length} 条改进建议和完整报告`,
+      detail: "已汇总结论、风险节点、升级建议和推荐回复"
     }
   ];
 }
 
-function renderTags(tags) {
-  tagCloudEl.innerHTML = tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
-}
-
-function renderSignals(signals) {
-  signalBoardEl.innerHTML = signals
-    .map(
-      (item) => `
-        <div class="signal-row">
-          <div class="signal-head">
-            <span>${escapeHtml(item.label)}</span>
-            <span class="score-badge">${item.value}</span>
-          </div>
-          <div class="signal-track">
-            <span class="signal-fill" style="width:${item.value}%"></span>
-          </div>
-          <p>${escapeHtml(item.hint)}</p>
-        </div>
-      `
-    )
-    .join("");
-}
-
-function renderIssues(issues) {
-  if (!issues.length) {
-    issueListEl.innerHTML = '<div class="empty-block">暂无分类</div>';
-    return;
-  }
-
-  issueListEl.innerHTML = issues
-    .map(
-      (item) => `
-        <article class="issue-item">
-          <div class="issue-head">
-            <strong>${escapeHtml(item.name)}</strong>
-            <span class="score-badge">命中 ${item.hits}</span>
-          </div>
-          <p>${escapeHtml(item.description)}</p>
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderRiskNodes(risks) {
-  if (!risks.length) {
-    riskListEl.innerHTML = '<div class="empty-block">暂无风险节点</div>';
-    return;
-  }
-
-  const severityLabels = {
-    high: "高风险",
-    medium: "中风险",
-    low: "低风险"
-  };
-
-  riskListEl.innerHTML = risks
-    .map(
-      (item) => `
-        <article class="stack-card">
-          <strong>${escapeHtml(item.text)}</strong>
-          <div class="stack-meta">
-            <span class="meta-badge">${escapeHtml(item.actor)}</span>
-            <span class="severity-badge ${item.severity}">${severityLabels[item.severity]}</span>
-          </div>
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderTextList(container, items, fallbackText) {
+function renderCompactItems(container, items, fallbackText, mapper) {
   if (!items.length) {
     container.innerHTML = `<div class="empty-block">${fallbackText}</div>`;
     return;
   }
 
-  container.innerHTML = items
-    .map(
-      (item) => `
-        <article class="stack-card">
-          <strong>${escapeHtml(item)}</strong>
-        </article>
-      `
-    )
-    .join("");
+  container.innerHTML = items.map(mapper).join("");
+}
+
+function renderIssues(issues) {
+  renderCompactItems(
+    issueListEl,
+    issues,
+    "暂无分类",
+    (item) => `
+      <article class="compact-item">
+        <strong>${escapeHtml(item.name)}</strong>
+        <p>${escapeHtml(item.description)}</p>
+        <div class="compact-meta">
+          <span class="score-badge">命中 ${item.hits}</span>
+        </div>
+      </article>
+    `
+  );
+}
+
+function renderRiskNodes(risks) {
+  const labels = { high: "高风险", medium: "中风险", low: "低风险" };
+  renderCompactItems(
+    riskListEl,
+    risks,
+    "暂无风险节点",
+    (item) => `
+      <article class="compact-item">
+        <strong>${escapeHtml(item.text)}</strong>
+        <div class="compact-meta">
+          <span class="meta-badge">${escapeHtml(item.actor)}</span>
+          <span class="severity-badge ${item.severity}">${labels[item.severity]}</span>
+        </div>
+      </article>
+    `
+  );
+}
+
+function renderSuggestions(suggestions) {
+  renderCompactItems(
+    suggestionListEl,
+    suggestions,
+    "暂无改进建议",
+    (item) => `
+      <article class="compact-item">
+        <strong>${escapeHtml(item)}</strong>
+      </article>
+    `
+  );
+}
+
+function renderEscalations(items) {
+  renderCompactItems(
+    escalationListEl,
+    items,
+    "暂无升级建议",
+    (item) => `
+      <article class="compact-item">
+        <strong>${escapeHtml(item)}</strong>
+      </article>
+    `
+  );
 }
 
 function renderEvidence(evidence) {
-  if (!evidence.length) {
-    evidenceListEl.innerHTML = '<div class="empty-block">暂无关键证据</div>';
-    return;
-  }
+  renderCompactItems(
+    evidenceListEl,
+    evidence,
+    "暂无关键证据",
+    (item) => `
+      <article class="compact-item">
+        <strong>${escapeHtml(item.reason)}</strong>
+        <p>${escapeHtml(item.role)}：${escapeHtml(item.text)}</p>
+      </article>
+    `
+  );
+}
 
-  evidenceListEl.innerHTML = evidence
-    .map(
-      (item) => `
-        <article class="evidence-card">
-          <div class="evidence-meta">
-            <span class="evidence-reason">${escapeHtml(item.reason)}</span>
-            <span class="meta-badge">${escapeHtml(item.role)}</span>
-          </div>
-          <blockquote>${escapeHtml(item.text)}</blockquote>
-        </article>
-      `
-    )
-    .join("");
+function renderSignals(signals) {
+  renderCompactItems(
+    signalBoardEl,
+    signals,
+    "暂无评分",
+    (item) => `
+      <div class="signal-row">
+        <div class="signal-head">
+          <strong>${escapeHtml(item.label)}</strong>
+          <span class="score-badge">${item.value}</span>
+        </div>
+        <div class="signal-track">
+          <span class="signal-fill" style="width:${item.value}%"></span>
+        </div>
+        <p>${escapeHtml(item.hint)}</p>
+      </div>
+    `
+  );
 }
 
 function renderTrace(entries) {
-  if (!entries.length) {
-    agentTraceEl.innerHTML = '<div class="empty-block">暂无运行记录</div>';
-    return;
-  }
+  const statusLabels = { success: "完成", warning: "关注", danger: "高风险" };
 
-  const labelMap = {
-    success: "完成",
-    warning: "需关注",
-    danger: "高风险"
-  };
+  renderCompactItems(
+    agentTraceEl,
+    entries,
+    "暂无运行记录",
+    (entry) => `
+      <article class="trace-item">
+        <div class="trace-head">
+          <strong>${escapeHtml(entry.agent)}</strong>
+          <span class="trace-badge ${entry.status}">${statusLabels[entry.status]}</span>
+        </div>
+        <p>${escapeHtml(entry.summary)}</p>
+        <div class="trace-meta">
+          <span class="meta-badge">${escapeHtml(entry.detail)}</span>
+        </div>
+      </article>
+    `
+  );
+}
 
-  agentTraceEl.innerHTML = entries
-    .map(
-      (entry) => `
-        <article class="trace-card">
-          <div class="trace-head">
-            <strong>${escapeHtml(entry.agent)}</strong>
-            <span class="trace-badge ${entry.status}">${labelMap[entry.status]}</span>
-          </div>
-          <p><strong>关注点：</strong>${escapeHtml(entry.focus)}</p>
-          <p><strong>输出：</strong>${escapeHtml(entry.output)}</p>
-          <div class="trace-meta">
-            <span class="meta-badge">${escapeHtml(entry.detail)}</span>
-          </div>
-        </article>
-      `
-    )
-    .join("");
+function renderLane(entries) {
+  renderCompactItems(
+    agentLaneEl,
+    entries,
+    "暂无链路",
+    (entry) => `
+      <article class="lane-item">
+        <div class="lane-head">
+          <span class="lane-index">${entry.index}</span>
+          <span class="trace-badge ${entry.status}">${escapeHtml(entry.agent)}</span>
+        </div>
+        <strong>${escapeHtml(entry.summary)}</strong>
+      </article>
+    `
+  );
+}
+
+function renderTags(tags) {
+  tagCloudEl.innerHTML = tags.length
+    ? tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")
+    : '<span class="tag placeholder-tag">等待标签</span>';
 }
 
 function updateModeAndSceneBadges() {
   sceneBadgeEl.textContent = samples[state.sample].label;
   modeBadgeEl.textContent = modeConfig[state.mode].label;
+}
+
+function setActiveTab(tab) {
+  state.tab = tab;
+  tabButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.tab === tab);
+  });
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle("active", panel.id === `panel-${tab}`);
+  });
 }
 
 function emptyDashboard(message) {
@@ -566,16 +543,17 @@ function emptyDashboard(message) {
   summaryMetaEl.textContent = "尚未开始运行";
   summaryOutputEl.className = "summary-text empty-text";
   summaryOutputEl.textContent = message;
-  tagCloudEl.innerHTML = '<span class="tag placeholder-tag">等待标签</span>';
-  signalBoardEl.innerHTML = '<div class="empty-block">暂无评分</div>';
-  issueListEl.innerHTML = '<div class="empty-block">暂无分类</div>';
-  riskListEl.innerHTML = '<div class="empty-block">暂无风险节点</div>';
-  suggestionListEl.innerHTML = '<div class="empty-block">暂无改进建议</div>';
+  renderTags([]);
+  renderIssues([]);
+  renderRiskNodes([]);
+  renderSuggestions([]);
+  renderEscalations([]);
+  renderEvidence([]);
+  renderSignals([]);
+  renderTrace([]);
+  renderLane([]);
   replyPreviewEl.textContent = "等待生成推荐回复";
-  escalationListEl.innerHTML = '<div class="empty-block">暂无升级建议</div>';
-  evidenceListEl.innerHTML = '<div class="empty-block">暂无关键证据</div>';
   reportPreviewEl.textContent = "等待生成复盘报告";
-  agentTraceEl.innerHTML = '<div class="empty-block">暂无运行记录</div>';
 }
 
 function analyzeTranscript() {
@@ -601,7 +579,6 @@ function analyzeTranscript() {
   const repeatComplaintCount = customerTurns.filter((turn) => /又|还是|一直|还没|昨天也/.test(turn.content)).length;
 
   const issues = analyzeIssues(fullText);
-
   const serviceScore = clamp(
     56 +
       empathyCount * 6 +
@@ -615,7 +592,6 @@ function analyzeTranscript() {
     28,
     97
   );
-
   const emotionScore = clamp(72 - customerNegative * 7 + customerPositive * 5 + empathyCount * 2, 18, 95);
   const riskScore = clamp(
     24 +
@@ -623,7 +599,7 @@ function analyzeTranscript() {
       repeatComplaintCount * 6 +
       (timingCount === 0 ? 16 : 0) +
       (ownershipCount === 0 ? 10 : 0) +
-      (issues.some((item) => item.name === "规则说明冲突") ? 12 : 0) +
+      (issues.some((item) => item.name === "规则冲突") ? 12 : 0) +
       (issues.some((item) => item.name === "升级投诉风险") ? 15 : 0),
     8,
     96
@@ -636,7 +612,7 @@ function analyzeTranscript() {
     empathyScore: clamp(35 + empathyCount * 18, 20, 96),
     clarityScore: clamp(40 + timingCount * 16 + ownershipCount * 10, 22, 96),
     executionScore: clamp(32 + resolutionCount * 14 + timingCount * 10, 18, 97),
-    policyScore: clamp(80 - (issues.some((item) => item.name === "规则说明冲突") ? 24 : 0) - riskyAgentCount * 10, 28, 95)
+    policyScore: clamp(80 - (issues.some((item) => item.name === "规则冲突") ? 24 : 0) - riskyAgentCount * 10, 28, 95)
   };
 
   const riskNodes = extractRiskNodes(turns);
@@ -646,7 +622,7 @@ function analyzeTranscript() {
   const reply = buildReply(issues, metrics);
   const traceEntries = buildTraceEntries(metrics, issues, riskNodes, reply, escalations, suggestions);
 
-  const summary = `这段会话主要聚焦于${issues.length ? issues[0].name : "一般售后处理"}。当前客服在${timingCount > 0 ? "时限承诺" : "时限说明"}和${ownershipCount > 0 ? "问题接手" : "主动接手"}方面${serviceScore >= 72 ? "表现较稳" : "仍有提升空间"}，但用户情绪处于${sentimentLabel(emotionScore)}状态，整体风险等级为${riskLabel(riskScore)}。`;
+  const summary = `本次会话聚焦于${issues.length ? issues[0].name : "一般售后处理"}。当前客服在${timingCount > 0 ? "时限承诺" : "时限说明"}和${ownershipCount > 0 ? "问题接手" : "主动接手"}方面${serviceScore >= 72 ? "表现较稳" : "仍有优化空间"}，用户情绪处于${sentimentLabel(emotionScore)}状态，整体风险等级为${riskLabel(riskScore)}。`;
   const tags = [
     ...(issues.length ? issues.map((item) => item.name) : ["通用质检"]),
     sentimentLabel(emotionScore),
@@ -662,20 +638,21 @@ function analyzeTranscript() {
   scoreHintEl.textContent = serviceLabel(serviceScore);
   riskScoreEl.textContent = String(riskScore);
   riskHintEl.textContent = riskLabel(riskScore);
-  summaryMetaEl.textContent = `${modeConfig[state.mode].label} · 自动抽取 ${turns.length} 轮会话信号`;
+  summaryMetaEl.textContent = `${modeConfig[state.mode].label} · ${turns.length} 轮会话`;
   summaryOutputEl.className = "summary-text";
   summaryOutputEl.textContent = summary;
 
   renderTags([...new Set(tags)]);
-  renderSignals(buildSignals(metrics));
   renderIssues(issues);
   renderRiskNodes(riskNodes);
-  renderTextList(suggestionListEl, suggestions, "暂无改进建议");
-  replyPreviewEl.textContent = reply;
-  renderTextList(escalationListEl, escalations, "暂无升级建议");
+  renderSuggestions(suggestions);
+  renderEscalations(escalations);
   renderEvidence(evidence);
-  reportPreviewEl.textContent = report;
+  renderSignals(buildSignals(metrics));
   renderTrace(traceEntries);
+  renderLane(traceEntries);
+  replyPreviewEl.textContent = reply;
+  reportPreviewEl.textContent = report;
 }
 
 function setSample(sampleKey) {
@@ -701,7 +678,7 @@ function loadCurrentSample() {
 
 function clearTranscript() {
   documentInput.value = "";
-  emptyDashboard("点击“运行 Agent 工作流”后，这里会生成面向主管复盘的简明结论。");
+  emptyDashboard("点击“运行工作流”后，这里会生成一段简洁的复盘结论。");
 }
 
 async function copyText(text, onSuccess, onFail) {
@@ -718,18 +695,18 @@ async function copyText(text, onSuccess, onFail) {
 }
 
 sampleButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    setSample(button.dataset.sample);
-  });
+  button.addEventListener("click", () => setSample(button.dataset.sample));
 });
 
 modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setMode(button.dataset.mode);
-    if (normalizeText(documentInput.value)) {
-      analyzeTranscript();
-    }
+    if (normalizeText(documentInput.value)) analyzeTranscript();
   });
+});
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => setActiveTab(button.dataset.tab));
 });
 
 loadSampleButton.addEventListener("click", loadCurrentSample);
@@ -762,10 +739,11 @@ copyReportButton.addEventListener("click", () => {
 
 documentInput.addEventListener("input", () => {
   if (!normalizeText(documentInput.value)) {
-    emptyDashboard("点击“运行 Agent 工作流”后，这里会生成面向主管复盘的简明结论。");
+    emptyDashboard("点击“运行工作流”后，这里会生成一段简洁的复盘结论。");
   }
 });
 
 setSample(state.sample);
 setMode(state.mode);
+setActiveTab(state.tab);
 loadCurrentSample();
