@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ServicePilot Multi-Agent 客服工单分诊台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace-shell">
+        <header class="topbar">
+          <div class="topbar-main">
+            <p class="eyebrow">Customer Support Multi-Agent Workflow</p>
+            <h1>ServicePilot Multi-Agent 客服工单分诊台</h1>
+            <p class="topbar-copy">
+              面向售后客服、在线支持和运营质检的多 Agent 原型。它把原始会话交给分诊 Agent、规则 Agent、回复 Agent、升级 Agent 和复盘 Agent，自动完成问题分类、风险判定、标准回复生成和复盘报告输出。
+            </p>
+          </div>
+          <div class="topbar-status">
+            <span class="status-pill">Multi-Agent Demo</span>
+            <span class="status-caption">适合在线演示、截图和项目申请材料</span>
+          </div>
+        </header>
+
+        <section class="hero-grid">
+          <article class="surface-card pain-card">
+            <div class="section-head compact-head">
+              <div>
+                <h2>解决的核心痛点</h2>
+                <p>减少客服主管手动看记录、判断风险、改写话术和写复盘的重复劳动。</p>
+              </div>
+            </div>
+            <ul class="pain-list">
+              <li>高风险会话难以及时识别，投诉和升级信号容易漏掉</li>
+              <li>不同坐席口径不一致，规则冲突会直接放大用户不满</li>
+              <li>主管复盘依赖人工阅读和总结，质检效率低且不稳定</li>
+            </ul>
+          </article>
+
+          <article class="surface-card flow-card">
+            <div class="section-head compact-head">
+              <div>
+                <h2>Agent 协作链路</h2>
+                <p>一段客服对话会依次经过 5 个 Agent，形成有痕迹的分析链路。</p>
+              </div>
+            </div>
+            <div class="mini-flow">
+              <div class="mini-flow-step">
+                <span class="mini-flow-index">01</span>
+                <div>
+                  <strong>分诊 Agent</strong>
+                  <p>识别问题类型、用户情绪和主诉焦点</p>
+                </div>
+              </div>
+              <div class="mini-flow-step">
+                <span class="mini-flow-index">02</span>
+                <div>
+                  <strong>规则 Agent</strong>
+                  <p>检查规则冲突、SLA 时限和承诺缺口</p>
+                </div>
+              </div>
+              <div class="mini-flow-step">
+                <span class="mini-flow-index">03</span>
+                <div>
+                  <strong>回复 Agent</strong>
+                  <p>生成更稳的客服回复与闭环话术</p>
+                </div>
+              </div>
+              <div class="mini-flow-step">
+                <span class="mini-flow-index">04</span>
+                <div>
+                  <strong>升级 Agent</strong>
+                  <p>判断是否需要主管介入、补偿或工单升级</p>
+                </div>
+              </div>
+              <div class="mini-flow-step">
+                <span class="mini-flow-index">05</span>
+                <div>
+                  <strong>复盘 Agent</strong>
+                  <p>输出结构化复盘结论和可复制报告</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="control-bar surface-card">
+          <div class="control-block">
+            <span class="control-label">演示场景</span>
+            <div class="chip-group">
+              <button class="chip active" type="button" data-sample="refund">退款争议</button>
+              <button class="chip" type="button" data-sample="shipping">物流催单</button>
+              <button class="chip" type="button" data-sample="membership">会员投诉</button>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <span class="control-label">运行模式</span>
+            <div class="segmented-control">
+              <button class="segment active" type="button" data-mode="standard">标准质检</button>
+              <button class="segment" type="button" data-mode="strict">严格质检</button>
+              <button class="segment" type="button" data-mode="coach">教练模式</button>
+            </div>
+          </div>
+
+          <div class="control-actions">
+            <button id="loadSampleButton" class="secondary-button" type="button">加载示例</button>
+            <button id="clearButton" class="secondary-button" type="button">清空会话</button>
+            <button id="analyzeButton" class="primary-button" type="button">运行 Agent 工作流</button>
+          </div>
+        </section>
+
+        <section class="board-grid">
+          <div class="editor-column">
+            <article class="surface-card editor-card">
+              <div class="section-head">
+                <div>
+                  <h2>原始客服对话</h2>
+                  <p>支持客服与客户会话粘贴。建议使用“客户：”“客服：”格式，方便多 Agent 识别轮次、风险和动作承诺。</p>
+                </div>
+                <div class="meta-badge-row">
+                  <span id="sceneBadge" class="meta-badge">退款争议</span>
+                  <span id="modeBadge" class="meta-badge subtle-badge">标准质检</span>
+                </div>
+              </div>
+
+              <textarea
+                id="documentInput"
+                class="document-input"
+                placeholder="例如：&#10;客户 09:12：我申请退款四天了还没到账。&#10;客服 09:13：抱歉让您久等了，我先帮您核实。"
+              ></textarea>
+
+              <div class="editor-footer">
+                <div class="hint-list">
+                  <span>适用场景：售后退款、物流催单、会员投诉、活动争议、工单升级</span>
+                  <span>演示建议：先加载示例，再切换模式对比 Agent 输出差异</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="insight-column">
+            <section class="kpi-grid">
+              <article class="kpi-card">
+                <span class="kpi-label">会话轮次</span>
+                <strong id="turnCount">0</strong>
+                <span id="turnMix" class="kpi-foot">客户 0 / 客服 0</span>
+              </article>
+              <article class="kpi-card">
+                <span class="kpi-label">客户情绪</span>
+                <strong id="emotionScore">0</strong>
+                <span id="emotionHint" class="kpi-foot">等待分析</span>
+              </article>
+              <article class="kpi-card">
+                <span class="kpi-label">服务得分</span>
+                <strong id="serviceScore">0</strong>
+                <span id="scoreHint" class="kpi-foot">等待分析</span>
+              </article>
+              <article class="kpi-card">
+                <span class="kpi-label">风险等级</span>
+                <strong id="riskScore">0</strong>
+                <span id="riskHint" class="kpi-foot">等待分析</span>
+              </article>
+            </section>
+
+            <section class="dual-grid">
+              <article class="surface-card">
+                <div class="section-head">
+                  <div>
+                    <h2>工作流看板</h2>
+                    <p id="summaryMeta">尚未开始运行</p>
+                  </div>
+                  <div id="tagCloud" class="tag-cloud">
+                    <span class="tag placeholder-tag">等待标签</span>
+                  </div>
+                </div>
+                <p id="summaryOutput" class="summary-text empty-text">
+                  点击“运行 Agent 工作流”后，这里会生成面向主管复盘的简明结论。
+                </p>
+              </article>
+
+              <article class="surface-card">
+                <div class="section-head compact-head">
+                  <div>
+                    <h2>Agent Trace</h2>
+                    <p>展示每个 Agent 的输入关注点、输出结果和状态。</p>
+                  </div>
+                </div>
+                <div id="agentTrace" class="trace-list">
+                  <div class="empty-block">暂无运行记录</div>
+                </div>
+              </article>
+            </section>
+
+            <section class="dual-grid">
+              <article class="surface-card">
+                <div class="section-head compact-head">
+                  <div>
+                    <h2>服务维度评分</h2>
+                    <p>从安抚、清晰度、执行承诺、规范性四个角度评估当前会话。</p>
+                  </div>
+                </div>
+                <div id="signalBoard" class="signal-board">
+                  <div class="empty-block">暂无评分</div>
+                </div>
+              </article>
+
+              <article class="surface-card">
+                <div class="section-head compact-head">
+                  <div>
+                    <h2>问题分类</h2>
+                    <p>自动识别主要议题、触发因素和适合的处理场景。</p>
+                  </div>
+                </div>
+                <div id="issueList" class="issue-list">
+                  <div class="empty-block">暂无分类</div>
+                </div>
+              </article>
+            </section>
+
+            <section class="dual-grid">
+              <article class="surface-card">
+                <div class="section-head compact-head">
+                  <div>
+                    <h2>风险节点</h2>
+                    <p>定位升级投诉、规则冲突、时限不清等高风险瞬间。</p>
+                  </div>
+                </div>
+                <div id="riskList" class="stack-list">
+                  <div class="empty-block">暂无风险节点</div>
+                </div>
+              </article>
+
+              <article class="surface-card">
+                <div class="section-head compact-head">
+                  <div>
+                    <h2>改进建议</h2>
+                    <p>给出下一次同类对话更稳的处理方式。</p>
+                  </div>
+                </div>
+                <div id="suggestionList" class="stack-list">
+                  <div class="empty-block">暂无改进建议</div>
+                </div>
+              </article>
+            </section>
+
+            <section class="dual-grid">
+              <article class="surface-card">
+                <div class="section-head">
+                  <div>
+                    <h2>推荐回复</h2>
+                    <p>由回复 Agent 自动生成一段更符合规范、带时限承诺的客服回复。</p>
+                  </div>
+                  <button id="copyReplyButton" class="secondary-button" type="button">复制回复</button>
+                </div>
+                <pre id="replyPreview" class="response-preview">等待生成推荐回复</pre>
+              </article>
+
+              <article class="surface-card">
+                <div class="section-head compact-head">
+                  <div>
+                    <h2>升级建议</h2>
+                    <p>由升级 Agent 判断是否需要主管介入、补偿策略或工单升级。</p>
+                  </div>
+                </div>
+                <div id="escalationList" class="stack-list">
+                  <div class="empty-block">暂无升级建议</div>
+                </div>
+              </article>
+            </section>
+
+            <article class="surface-card">
+              <div class="section-head compact-head">
+                <div>
+                  <h2>关键证据句</h2>
+                  <p>保留最值得复盘、培训和主管追踪的原始话术。</p>
+                </div>
+              </div>
+              <div id="evidenceList" class="evidence-list">
+                <div class="empty-block">暂无关键证据</div>
+              </div>
+            </article>
+
+            <article class="surface-card report-card">
+              <div class="section-head">
+                <div>
+                  <h2>复盘报告</h2>
+                  <p>由复盘 Agent 输出，可直接复制到飞书、企业微信、邮件或项目说明中。</p>
+                </div>
+                <button id="copyReportButton" class="secondary-button" type="button">复制报告</button>
+              </div>
+              <pre id="reportPreview" class="report-preview">等待生成复盘报告</pre>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>
