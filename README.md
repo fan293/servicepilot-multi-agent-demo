@@ -35,14 +35,13 @@
 - 无需后端服务
 - 适合部署到 GitHub Pages、Netlify 或 Vercel
 
+## 在线演示
+
+- GitHub Pages: https://fan293.github.io/servicepilot-multi-agent-demo/
+
 ## 演示建议
 
-1. 打开 `index.html`
-2. 选择一个演示场景
-3. 点击“加载示例”
-4. 点击“运行 Agent 工作流”
-5. 查看 Agent 协作链路、风险节点、推荐回复和复盘报告
-
-## 为什么适合申请材料
-
-相比泛化摘要工具，这个项目更符合“Agent / AI 驱动成果”的描述方式：有明确痛点、有多 Agent 分工、有运行痕迹，也更容易配合截图、在线演示地址和 GitHub 链接一起作为证明材料。
+1. 选择一个演示场景
+2. 点击“加载示例”
+3. 点击“运行 Agent 工作流”
+4. 查看 Agent 协作链路、风险节点、推荐回复和复盘报告
