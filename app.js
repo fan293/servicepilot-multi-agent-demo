@@ -35,88 +35,89 @@ const tabButtons = [...document.querySelectorAll("[data-tab]")];
 const tabPanels = [...document.querySelectorAll(".tab-panel")];
 
 const state = {
-  sample: "refund",
+  sample: "refundDelay",
   mode: "standard",
   tab: "overview"
 };
 
 const samples = {
-  refund: {
-    label: "退款争议",
-    text: `客户 09:12：我上周申请退款，到现在还没到账，你们页面写的是 48 小时处理，现在已经第四天了。
-客服 09:13：抱歉让您久等了，我先帮您核实一下订单状态。
-客户 09:14：上一个客服也是这么说的，但一直没人回我，我现在非常不满意。
-客服 09:16：我看到系统里退款单还在审核中，可能是仓库签收状态没有同步。
-客户 09:17：那为什么页面显示已经签收？你们规则是不是前后不一致？
-客服 09:18：您反馈的情况确实有偏差，我这边先为您升级加急，并登记专员回电。
-客户 09:19：我今天必须知道结果，不然我就投诉。
-客服 09:20：理解您的着急，我会在今天 18:00 前短信同步处理进度，并补充一张 20 元无门槛券作为体验补偿。`
+  refundDelay: {
+    label: "退款到账延迟",
+    text: `买家 09:12：我三天前申请退款，页面写的是 48 小时到账，现在还是审核中。
+商家 09:13：抱歉让您久等了，我先帮您核实退款单状态。
+买家 09:14：昨天也有人这么说，但一直没人回我，我现在很不满意。
+商家 09:16：系统里显示仓库签收状态还没同步，所以退款单卡在审核队列。
+买家 09:17：那为什么订单页写的是已签收？你们前后说法不一致。
+商家 09:18：您反馈得对，我这边立即升级退款审核，并在今天 18:00 前短信同步进度。
+买家 09:19：如果今天还没结果，我就去平台投诉。
+商家 09:20：理解您的着急，我会继续跟进，并申请补发一张 20 元补偿券。`
   },
-  shipping: {
-    label: "物流催单",
-    text: `客户 20:05：我的订单已经显示揽收三天了，一点物流更新都没有，你们到底发没发？
-客服 20:06：您好，我先帮您查看一下物流详情，请稍等。
-客户 20:07：我昨天也问过，你们只是让我等，我现在急着要用。
-客服 20:09：抱歉让您反复确认，我这边查到包裹已经从中转仓发出，但承运商扫描延迟了。
-客户 20:10：那你们能不能给个明确时间？不要一直说在路上。
-客服 20:12：可以，我这边先帮您登记物流催派，并联系承运商优先核实，预计今晚 22:00 前给您短信反馈。
-客户 20:13：如果明天还不到，我就直接申请退款了。
-客服 20:14：理解您的顾虑，如果明天中午前仍未更新，我会为您继续升级，并同步退款或补偿方案。`
+  signedDispute: {
+    label: "物流签收争议",
+    text: `买家 20:05：系统显示今天下午已签收，但我根本没收到包裹。
+商家 20:06：您好，我先帮您核实签收记录和派件站点。
+买家 20:07：我刚刚问了门卫也没有，别再让我一直等。
+商家 20:09：物流回传是前台代收，但没有上传签收照片，信息还不完整。
+买家 20:10：如果是你们配送问题，我要退款并赔偿。
+商家 20:12：我这边先登记异常签收排查，并联系站点在今晚 22:00 前回传签收凭证。
+买家 20:13：如果查不到证据，我不会接受继续拖着。
+商家 20:14：明白，如无法确认妥投，我会直接为您升级退款或补发处理。`
   },
-  membership: {
-    label: "会员投诉",
-    text: `客户 14:21：我根本不知道会员自动续费了，今天突然扣了 198 元，这个体验太差了。
-客服 14:22：抱歉给您带来困扰，我先帮您确认一下扣费记录。
-客户 14:23：你们没有明显提醒，我已经很久没用了，为什么还会自动续？
-客服 14:25：系统显示您去年开通时勾选了自动续费，但我理解这个提醒方式可能不够清楚。
-客户 14:26：我现在要求退款，而且不接受只关自动续费。
-客服 14:28：明白，我这边先帮您关闭自动续费，并提交退款审核申请。
-客户 14:29：多久能有结果？我不想再反复跟进。
-客服 14:30：我会在今天 17:00 前通过短信和站内信同步审核结果，如审核未通过，我会继续为您升级人工复核。`
+  lateShipment: {
+    label: "延迟发货赔付",
+    text: `买家 14:21：商品承诺 48 小时发货，现在已经第 4 天了还没出库。
+商家 14:22：抱歉耽误您了，我先核实仓库发货节点。
+买家 14:23：你们活动页写了超时可赔付，我现在就想知道怎么处理。
+商家 14:25：系统显示仓库缺货补货延迟，但活动页还保留了原始承诺。
+买家 14:26：那就是你们规则没同步，我不想继续等了，要么退款要么赔付。
+商家 14:28：理解，我先为您申请优先退款，并同步核实是否满足延迟发货补偿条件。
+买家 14:29：今天能不能给我明确答复？
+商家 14:30：可以，我会在今天 17:30 前把退款进度和赔付结果一并同步给您。`
   }
 };
 
 const modeConfig = {
-  standard: { label: "标准质检", scoreBias: 0, suggestionDepth: 4 },
-  strict: { label: "严格质检", scoreBias: -8, suggestionDepth: 5 },
+  standard: { label: "标准仲裁", scoreBias: 0, suggestionDepth: 4 },
+  strict: { label: "严格仲裁", scoreBias: -8, suggestionDepth: 5 },
   coach: { label: "教练模式", scoreBias: -2, suggestionDepth: 6 }
 };
 
 const issueRules = [
   {
-    name: "退款争议",
-    description: "退款时效、审核状态或到账预期不清。",
-    keywords: ["退款", "到账", "审核", "签收", "补偿"]
+    name: "退款时效争议",
+    description: "退款审核、到账时效或退款节点超出承诺。",
+    keywords: ["退款", "到账", "审核", "48 小时", "48小时", "超时", "退款单", "进度"]
   },
   {
-    name: "物流异常",
-    description: "物流停滞、催单、承运商扫描延迟。",
-    keywords: ["物流", "揽收", "发货", "催派", "承运商", "在路上"]
+    name: "履约状态冲突",
+    description: "物流签收、仓库状态或页面展示前后不一致。",
+    keywords: ["签收", "已签收", "未收到", "状态", "不同步", "出库", "物流", "代收", "照片"]
   },
   {
-    name: "会员续费投诉",
-    description: "自动续费、扣费提醒、退款争议。",
-    keywords: ["续费", "扣费", "会员", "自动续费", "提醒"]
+    name: "规则口径不一致",
+    description: "页面承诺、活动规则与人工说明出现冲突。",
+    keywords: ["规则", "承诺", "前后说法不一致", "前后不一致", "活动页", "赔付", "说明", "页面写"]
   },
   {
-    name: "规则冲突",
-    description: "页面说明、政策口径或客服话术冲突。",
-    keywords: ["规则", "不一致", "为什么", "说明", "口径"]
+    name: "赔付升级风险",
+    description: "买家已提出投诉、赔付或公开升级诉求。",
+    keywords: ["投诉", "赔偿", "赔付", "平台", "不接受", "不想继续等", "退款并赔偿"]
   },
   {
-    name: "升级投诉风险",
-    description: "用户已进入强烈不满或投诉状态。",
-    keywords: ["投诉", "差评", "不满意", "非常不满意", "太差了", "不接受"]
+    name: "责任判定待补证",
+    description: "当前还缺签收凭证、仓库节点或支付路径证据。",
+    keywords: ["凭证", "证据", "签收照片", "回传", "核实", "排查", "路径"]
   }
 ];
 
-const negativeWords = ["投诉", "不满意", "太差", "为什么", "还没", "一直", "急着", "不接受", "马上", "尽快", "很久", "反复"];
-const positiveWords = ["谢谢", "理解", "可以", "麻烦了", "辛苦了"];
-const empathyWords = ["抱歉", "理解", "久等", "困扰", "着急", "顾虑"];
-const ownershipWords = ["我来帮您", "我先帮您", "我这边", "已为您", "帮您登记", "帮您关闭", "继续为您", "为您升级"];
-const timingWords = ["今天", "今晚", "明天", "18:00", "17:00", "22:00", "中午前", "前", "稍后", "短信同步"];
-const resolutionWords = ["升级", "工单", "加急", "短信", "回电", "补偿", "退款审核", "催派", "优先核实", "关闭自动续费"];
-const riskyAgentWords = ["没办法", "不清楚", "你自己", "等着吧", "只能这样", "系统问题", "我也不知道"];
+const negativeWords = ["投诉", "不满意", "还没", "一直", "为什么", "赔付", "赔偿", "拖着", "不接受", "着急", "尽快", "马上"];
+const positiveWords = ["谢谢", "可以", "明白", "辛苦"];
+const empathyWords = ["抱歉", "理解", "久等", "耽误", "着急", "困扰"];
+const ownershipWords = ["我先帮您", "我这边", "我会", "立即", "先为您", "继续跟进", "升级", "同步"];
+const timingWords = ["今天", "今晚", "明天", "18:00", "17:30", "22:00", "稍后", "之前", "前", "同步"];
+const resolutionWords = ["退款", "补发", "补偿", "赔付", "升级", "短信", "回传", "排查", "优先", "核实", "凭证", "退款单"];
+const evidenceWords = ["页面写", "活动页", "签收照片", "站点", "仓库", "代收", "审核", "到账", "出库", "凭证", "回传"];
+const riskyAgentWords = ["不清楚", "只能等", "没办法", "系统问题", "你再等等", "我也不知道"];
 
 function escapeHtml(text) {
   return text
@@ -152,7 +153,7 @@ function parseTranscript(rawText) {
         return null;
       }
 
-      const match = trimmed.match(/^(客户|用户|买家|顾客|客服|坐席|商家|机器人)\s*([0-2]?\d:\d{2})?\s*[:：]\s*(.+)$/);
+      const match = trimmed.match(/^(买家|用户|顾客|客户|商家|客服|平台|仓库|物流|系统)\s*([0-2]?\d:\d{2})?\s*[:：]\s*(.+)$/);
       if (!match) {
         return {
           index,
@@ -164,7 +165,7 @@ function parseTranscript(rawText) {
       }
 
       const role = match[1];
-      const speaker = ["客户", "用户", "买家", "顾客"].includes(role) ? "customer" : "agent";
+      const speaker = ["买家", "用户", "顾客", "客户"].includes(role) ? "customer" : "agent";
 
       return {
         index,
@@ -177,28 +178,28 @@ function parseTranscript(rawText) {
     .filter(Boolean);
 }
 
-function sentimentLabel(score) {
+function emotionLabel(score) {
   if (score >= 72) return "较稳定";
   if (score >= 48) return "偏紧张";
-  return "高波动";
+  return "激烈";
 }
 
-function serviceLabel(score) {
-  if (score >= 86) return "表现优秀";
-  if (score >= 72) return "整体稳妥";
-  if (score >= 58) return "可继续优化";
-  return "建议重点复盘";
+function handlingLabel(score) {
+  if (score >= 86) return "闭环完整";
+  if (score >= 72) return "处理稳妥";
+  if (score >= 58) return "仍可优化";
+  return "建议人工介入";
 }
 
 function riskLabel(score) {
-  if (score >= 75) return "高风险";
-  if (score >= 50) return "中风险";
-  return "低风险";
+  if (score >= 75) return "高争议";
+  if (score >= 50) return "中争议";
+  return "低争议";
 }
 
 function severityFromText(text) {
-  if (/投诉|差评|今天必须|不接受|升级/.test(text)) return "high";
-  if (/不一致|延迟|没有同步|规则|催单|退款/.test(text)) return "medium";
+  if (/投诉|赔偿|赔付|不接受|今天必须|升级/.test(text)) return "high";
+  if (/不一致|延迟|不同步|退款|签收|凭证|证据/.test(text)) return "medium";
   return "low";
 }
 
@@ -214,9 +215,13 @@ function analyzeIssues(text) {
     .slice(0, 4);
 }
 
-function extractRiskNodes(turns) {
+function extractResponsibilityNodes(turns) {
   return turns
-    .filter((turn) => includesAny(turn.content, negativeWords) || includesAny(turn.content, ["投诉", "不一致", "退款", "催派", "升级", "自动续费"]))
+    .filter(
+      (turn) =>
+        includesAny(turn.content, negativeWords) ||
+        includesAny(turn.content, ["退款", "签收", "赔付", "赔偿", "凭证", "不一致", "升级", "回传"])
+    )
     .map((turn) => ({
       actor: turn.roleLabel,
       text: turn.content,
@@ -227,21 +232,47 @@ function extractRiskNodes(turns) {
 
 function buildSignals(metrics) {
   return [
-    { label: "情绪安抚", value: metrics.empathyScore, hint: metrics.empathyScore >= 70 ? "安抚到位" : "安抚偏弱" },
-    { label: "表达清晰度", value: metrics.clarityScore, hint: metrics.clarityScore >= 70 ? "说明清楚" : "建议更具体" },
-    { label: "执行承诺", value: metrics.executionScore, hint: metrics.executionScore >= 70 ? "动作明确" : "缺少闭环" },
-    { label: "规范性", value: metrics.policyScore, hint: metrics.policyScore >= 70 ? "规范较稳" : "口径需统一" }
+    {
+      label: "情绪安抚",
+      value: metrics.empathyScore,
+      hint: metrics.empathyScore >= 70 ? "安抚较到位" : "建议先接住情绪"
+    },
+    {
+      label: "证据完整度",
+      value: metrics.evidenceScore,
+      hint: metrics.evidenceScore >= 70 ? "核心证据较全" : "仍缺节点凭证"
+    },
+    {
+      label: "处置闭环",
+      value: metrics.executionScore,
+      hint: metrics.executionScore >= 70 ? "时限和动作明确" : "缺少回传承诺"
+    },
+    {
+      label: "规则一致性",
+      value: metrics.policyScore,
+      hint: metrics.policyScore >= 70 ? "口径较稳" : "需要统一承诺口径"
+    }
   ];
+}
+
+function evidenceReason(text) {
+  if (includesAny(text, ["48 小时", "48小时", "超时", "第 4 天", "一直", "还没"])) return "超时主诉";
+  if (includesAny(text, ["签收照片", "凭证", "回传", "代收", "站点"])) return "证据缺口";
+  if (includesAny(text, ["前后说法不一致", "前后不一致", "活动页", "页面写", "规则"])) return "规则冲突";
+  if (includesAny(text, ["投诉", "赔偿", "赔付"])) return "升级信号";
+  if (includesAny(text, ["今天", "今晚", "17:30", "18:00", "22:00", "同步"])) return "处置承诺";
+  return "关键片段";
 }
 
 function pickEvidence(turns) {
   const scored = turns.map((turn) => {
     let score = 1;
     score += includesAny(turn.content, negativeWords) ? 2.2 : 0;
-    score += includesAny(turn.content, empathyWords) ? 1.8 : 0;
+    score += includesAny(turn.content, empathyWords) ? 1.2 : 0;
     score += includesAny(turn.content, resolutionWords) ? 2.1 : 0;
-    score += /今天|明天|18:00|17:00|22:00/.test(turn.content) ? 1.2 : 0;
-    score += /投诉|不接受|升级|补偿|退款/.test(turn.content) ? 1.6 : 0;
+    score += includesAny(turn.content, evidenceWords) ? 2.3 : 0;
+    score += /今天|今晚|18:00|17:30|22:00/.test(turn.content) ? 1.2 : 0;
+    score += /投诉|赔偿|赔付|退款|签收/.test(turn.content) ? 1.6 : 0;
     return { ...turn, score };
   });
 
@@ -249,75 +280,86 @@ function pickEvidence(turns) {
     .sort((left, right) => right.score - left.score || left.index - right.index)
     .slice(0, 5)
     .sort((left, right) => left.index - right.index)
-    .map((turn, index) => ({
-      reason: ["高风险瞬间", "安抚动作", "解决承诺", "升级信号", "复盘重点"][index] || "关键证据",
+    .map((turn) => ({
+      reason: evidenceReason(turn.content),
       role: turn.roleLabel,
       text: turn.content
     }));
 }
 
-function buildSuggestions(metrics, issues, risks) {
+function buildSuggestions(metrics, issues, nodes) {
   const suggestions = [];
-  if (metrics.empathyScore < 70) suggestions.push("更早表达共情，先接住情绪再进入核实流程。");
-  if (metrics.clarityScore < 72) suggestions.push("给出更明确的处理路径和时间节点，避免只说“帮您核实”。");
-  if (metrics.executionScore < 72) suggestions.push("增加闭环动作，例如短信回传、工单编号或升级状态。");
-  if (issues.some((item) => item.name === "规则冲突")) suggestions.push("统一页面说明、知识库条目和客服口径。");
-  if (risks.some((item) => item.severity === "high")) suggestions.push("出现投诉信号后应尽早触发主管介入阈值。");
-  if (state.mode === "coach") suggestions.push("把优秀回复沉淀为带时限承诺的标准话术。");
+
+  if (metrics.empathyScore < 70) suggestions.push("更早接住买家情绪，再进入责任核实与规则说明。");
+  if (metrics.evidenceScore < 72) suggestions.push("补齐签收凭证、仓库节点或退款路径，避免责任判断悬空。");
+  if (metrics.executionScore < 72) suggestions.push("给出明确时限、回传方式和下一步动作，避免只说“帮您核实”。");
+  if (issues.some((item) => item.name === "规则口径不一致")) suggestions.push("统一活动页、订单页与人工说明里的承诺口径。");
+  if (nodes.some((item) => item.severity === "high")) suggestions.push("出现投诉或赔付诉求后，应尽快触发人工仲裁阈值。");
+  if (state.mode === "coach") suggestions.push("沉淀标准仲裁话术：责任判断、回传时点和补偿边界要一次说清。");
+
   return suggestions.slice(0, modeConfig[state.mode].suggestionDepth);
 }
 
-function buildEscalations(metrics, issues, risks) {
+function buildEscalations(metrics, issues, nodes) {
   const escalations = [];
-  if (metrics.riskScore >= 75) escalations.push("建议立即升级到主管或高级客服。");
-  if (issues.some((item) => item.name === "退款争议")) escalations.push("退款类问题建议同步审核节点和到账预期。");
-  if (issues.some((item) => item.name === "物流异常")) escalations.push("物流类问题建议触发催派或异常件排查。");
-  if (issues.some((item) => item.name === "会员续费投诉")) escalations.push("续费争议建议同步关闭自动续费并给出复核路径。");
-  if (!risks.length) escalations.push("当前无明显升级信号，可按标准闭环处理。");
+
+  if (metrics.riskScore >= 75) escalations.push("建议立即升级到人工仲裁或主管席。");
+  if (issues.some((item) => item.name === "退款时效争议")) escalations.push("同步退款审核节点、支付回传路径和预计到账时间。");
+  if (issues.some((item) => item.name === "履约状态冲突")) escalations.push("同步仓库、物流或站点侧凭证，优先确认签收责任。");
+  if (issues.some((item) => item.name === "规则口径不一致")) escalations.push("建议锁定页面承诺截图，避免后续口径再次变化。");
+  if (!nodes.length) escalations.push("当前未识别到明显升级信号，可按标准仲裁闭环处理。");
+
   return [...new Set(escalations)].slice(0, 4);
 }
 
 function buildReply(issues, metrics) {
   const names = issues.map((item) => item.name);
-  const hasRefund = names.includes("退款争议");
-  const hasShipping = names.includes("物流异常");
-  const hasMembership = names.includes("会员续费投诉");
+  const hasRefundDelay = names.includes("退款时效争议");
+  const hasSignedDispute = names.includes("履约状态冲突");
+  const hasRuleConflict = names.includes("规则口径不一致");
 
-  let coreAction = "我这边先帮您核实当前处理状态，并为您登记优先跟进。";
-  let deadline = "我会在今天 18:00 前把最新进展通过短信同步给您。";
+  let action =
+    "我这边先为您核实当前处理节点，并把责任判断和下一步动作一次同步给您。";
+  let deadline = "我会在今天 18:00 前把最新进度通过短信同步给您。";
 
-  if (hasRefund) {
-    coreAction = "我这边先为您核实退款审核节点，并同步确认到账进度，如存在状态不同步，我会立即帮您升级加急处理。";
-  } else if (hasShipping) {
-    coreAction = "我先帮您登记物流催派，并联系承运商核实停滞原因，避免您继续反复跟进。";
-    deadline = "我会在今晚 22:00 前把物流反馈结果同步给您。";
-  } else if (hasMembership) {
-    coreAction = "我先帮您确认扣费记录，并同步处理自动续费关闭与退款审核申请。";
-    deadline = "我会在今天 17:00 前把审核结果和下一步处理方案发给您。";
+  if (hasRefundDelay) {
+    action =
+      "我先为您核实退款审核节点和到账路径，如发现状态滞后或信息不同步，会立即升级处理。";
+    deadline = "我会在今天 18:00 前把退款进度和预计到账时间同步给您。";
   }
 
-  const tone = metrics.empathyScore >= 70 ? "抱歉让您这次处理感受不好" : "非常抱歉给您带来困扰";
-  return `${tone}。${coreAction}${deadline}如果在承诺时间内还没有结果，您可以直接回复这条会话，我会继续为您跟进并升级处理。`;
+  if (hasSignedDispute) {
+    action =
+      "我先为您核实站点签收记录、签收凭证和仓库流转节点，如无法确认妥投，会直接升级退款或补发处理。";
+    deadline = "我会在今晚 22:00 前把核查结果和下一步方案同步给您。";
+  }
+
+  if (hasRuleConflict) {
+    action += "同时我会对照活动页和订单页承诺，避免口径前后不一致。";
+  }
+
+  const tone = metrics.empathyScore >= 70 ? "抱歉让您久等了。" : "非常抱歉给您带来困扰。";
+  return `${tone}${action}${deadline}如果超过承诺时点仍没有结果，您直接回复这条会话即可，我会继续为您跟进并升级处理。`;
 }
 
-function buildReport(summary, issues, metrics, risks, suggestions, escalations, reply) {
+function buildReport(summary, issues, metrics, nodes, suggestions, escalations, reply) {
   return [
-    "【复盘结论】",
+    "【仲裁结论】",
     summary,
     "",
-    "【问题分类】",
+    "【争议分类】",
     issues.length ? issues.map((item) => `- ${item.name}（命中 ${item.hits} 项信号）`).join("\n") : "- 暂无分类",
     "",
     "【评分概览】",
-    `- 服务得分：${metrics.serviceScore}`,
-    `- 客户情绪：${metrics.emotionScore}（${sentimentLabel(metrics.emotionScore)}）`,
-    `- 风险等级：${metrics.riskScore}（${riskLabel(metrics.riskScore)}）`,
+    `- 履约得分：${metrics.handlingScore}（${handlingLabel(metrics.handlingScore)}）`,
+    `- 买家情绪：${metrics.emotionScore}（${emotionLabel(metrics.emotionScore)}）`,
+    `- 争议等级：${metrics.riskScore}（${riskLabel(metrics.riskScore)}）`,
     "",
-    "【风险节点】",
-    risks.length ? risks.map((item) => `- ${item.actor}：${item.text}`).join("\n") : "- 暂无明显风险节点",
+    "【责任线索】",
+    nodes.length ? nodes.map((item) => `- ${item.actor}：${item.text}`).join("\n") : "- 暂无明显责任线索",
     "",
-    "【改进建议】",
-    suggestions.length ? suggestions.map((item) => `- ${item}`).join("\n") : "- 暂无建议",
+    "【处置建议】",
+    suggestions.length ? suggestions.map((item) => `- ${item}`).join("\n") : "- 暂无处置建议",
     "",
     "【升级建议】",
     escalations.length ? escalations.map((item) => `- ${item}`).join("\n") : "- 暂无升级建议",
@@ -327,42 +369,49 @@ function buildReport(summary, issues, metrics, risks, suggestions, escalations, 
   ].join("\n");
 }
 
-function buildTraceEntries(metrics, issues, risks, reply, escalations, suggestions) {
+function buildTraceEntries(metrics, issues, nodes, evidence, escalations, suggestions, reply) {
   return [
     {
       index: "01",
-      agent: "分诊 Agent",
+      agent: "受理 Agent",
       status: "success",
-      summary: issues.length ? issues.map((item) => item.name).join(" / ") : "未识别出明确分类",
-      detail: `情绪评分 ${metrics.emotionScore}，判定为 ${sentimentLabel(metrics.emotionScore)}`
+      summary: issues.length ? issues.map((item) => item.name).join(" / ") : "未识别出明确争议分类",
+      detail: `买家情绪 ${metrics.emotionScore}，判定为 ${emotionLabel(metrics.emotionScore)}`
     },
     {
       index: "02",
-      agent: "规则 Agent",
-      status: issues.some((item) => item.name === "规则冲突") ? "warning" : "success",
-      summary: issues.some((item) => item.name === "规则冲突") ? "检测到规则冲突信号" : "规则口径基本稳定",
-      detail: `规范性评分 ${metrics.policyScore}`
+      agent: "证据 Agent",
+      status: metrics.evidenceScore >= 70 ? "success" : "warning",
+      summary: evidence.length ? `抽取 ${evidence.length} 个关键证据片段` : "仍需补充关键证据",
+      detail: `证据完整度 ${metrics.evidenceScore}`
     },
     {
       index: "03",
-      agent: "回复 Agent",
-      status: metrics.executionScore >= 70 ? "success" : "warning",
-      summary: "已生成带时限承诺的推荐回复",
-      detail: reply
+      agent: "规则 Agent",
+      status: issues.some((item) => item.name === "规则口径不一致") ? "warning" : "success",
+      summary: issues.some((item) => item.name === "规则口径不一致") ? "检测到规则口径冲突" : "规则口径基本稳定",
+      detail: `规则一致性 ${metrics.policyScore}`
     },
     {
       index: "04",
-      agent: "升级 Agent",
+      agent: "仲裁 Agent",
       status: metrics.riskScore >= 75 ? "danger" : "warning",
-      summary: escalations.length ? `输出 ${escalations.length} 条升级建议` : "当前无升级建议",
-      detail: `识别到 ${risks.length} 个风险节点`
+      summary: escalations.length ? `输出 ${escalations.length} 条升级或处置结论` : "当前可按标准路径处理",
+      detail: `争议等级 ${riskLabel(metrics.riskScore)}`
     },
     {
       index: "05",
+      agent: "回复 Agent",
+      status: metrics.executionScore >= 70 ? "success" : "warning",
+      summary: "已生成带时限承诺的仲裁回复",
+      detail: reply
+    },
+    {
+      index: "06",
       agent: "复盘 Agent",
       status: "success",
-      summary: `生成 ${suggestions.length} 条改进建议和完整报告`,
-      detail: "已汇总结论、风险节点、升级建议和推荐回复"
+      summary: `生成 ${suggestions.length} 条优化建议和完整仲裁报告`,
+      detail: "已汇总结论、证据、升级建议和推荐回复"
     }
   ];
 }
@@ -393,12 +442,12 @@ function renderIssues(issues) {
   );
 }
 
-function renderRiskNodes(risks) {
-  const labels = { high: "高风险", medium: "中风险", low: "低风险" };
+function renderResponsibilityNodes(nodes) {
+  const labels = { high: "高争议", medium: "中争议", low: "低争议" };
   renderCompactItems(
     riskListEl,
-    risks,
-    "暂无风险节点",
+    nodes,
+    "暂无责任线索",
     (item) => `
       <article class="compact-item">
         <strong>${escapeHtml(item.text)}</strong>
@@ -415,7 +464,7 @@ function renderSuggestions(suggestions) {
   renderCompactItems(
     suggestionListEl,
     suggestions,
-    "暂无改进建议",
+    "暂无处置建议",
     (item) => `
       <article class="compact-item">
         <strong>${escapeHtml(item)}</strong>
@@ -441,7 +490,7 @@ function renderEvidence(evidence) {
   renderCompactItems(
     evidenceListEl,
     evidence,
-    "暂无关键证据",
+    "暂无核心证据",
     (item) => `
       <article class="compact-item">
         <strong>${escapeHtml(item.reason)}</strong>
@@ -472,7 +521,7 @@ function renderSignals(signals) {
 }
 
 function renderTrace(entries) {
-  const statusLabels = { success: "完成", warning: "关注", danger: "高风险" };
+  const statusLabels = { success: "完成", warning: "关注", danger: "高争议" };
 
   renderCompactItems(
     agentTraceEl,
@@ -533,19 +582,19 @@ function setActiveTab(tab) {
 
 function emptyDashboard(message) {
   turnCountEl.textContent = "0";
-  turnMixEl.textContent = "客户 0 / 客服 0";
+  turnMixEl.textContent = "买家 0 / 商家 0";
   emotionScoreEl.textContent = "0";
   emotionHintEl.textContent = "等待分析";
   serviceScoreEl.textContent = "0";
   scoreHintEl.textContent = "等待分析";
   riskScoreEl.textContent = "0";
   riskHintEl.textContent = "等待分析";
-  summaryMetaEl.textContent = "尚未开始运行";
+  summaryMetaEl.textContent = "尚未开始仲裁";
   summaryOutputEl.className = "summary-text empty-text";
   summaryOutputEl.textContent = message;
   renderTags([]);
   renderIssues([]);
-  renderRiskNodes([]);
+  renderResponsibilityNodes([]);
   renderSuggestions([]);
   renderEscalations([]);
   renderEvidence([]);
@@ -553,7 +602,7 @@ function emptyDashboard(message) {
   renderTrace([]);
   renderLane([]);
   replyPreviewEl.textContent = "等待生成推荐回复";
-  reportPreviewEl.textContent = "等待生成复盘报告";
+  reportPreviewEl.textContent = "等待生成仲裁报告";
 }
 
 function analyzeTranscript() {
@@ -561,7 +610,7 @@ function analyzeTranscript() {
   const turns = parseTranscript(rawText);
 
   if (!rawText || turns.length < 4) {
-    emptyDashboard("请补充至少 4 轮以上的客服对话，再开始质检。");
+    emptyDashboard("请补充至少 4 轮以上的争议对话，再开始仲裁。");
     return;
   }
 
@@ -575,18 +624,20 @@ function analyzeTranscript() {
   const ownershipCount = agentTurns.reduce((total, turn) => total + countHits(turn.content, ownershipWords), 0);
   const timingCount = agentTurns.reduce((total, turn) => total + countHits(turn.content, timingWords), 0);
   const resolutionCount = agentTurns.reduce((total, turn) => total + countHits(turn.content, resolutionWords), 0);
+  const evidenceCount = turns.reduce((total, turn) => total + countHits(turn.content, evidenceWords), 0);
   const riskyAgentCount = agentTurns.reduce((total, turn) => total + countHits(turn.content, riskyAgentWords), 0);
-  const repeatComplaintCount = customerTurns.filter((turn) => /又|还是|一直|还没|昨天也/.test(turn.content)).length;
+  const repeatComplaintCount = customerTurns.filter((turn) => /昨天也|一直|根本没收到|不想继续等|别再让我|今天还没结果/.test(turn.content)).length;
 
   const issues = analyzeIssues(fullText);
-  const serviceScore = clamp(
-    56 +
+  const handlingScore = clamp(
+    58 +
       empathyCount * 6 +
       ownershipCount * 5 +
-      timingCount * 6 +
-      resolutionCount * 5 -
-      customerNegative * 2.6 -
-      riskyAgentCount * 9 -
+      timingCount * 5 +
+      resolutionCount * 5 +
+      evidenceCount * 3 -
+      customerNegative * 2.4 -
+      riskyAgentCount * 10 -
       repeatComplaintCount * 4 +
       modeConfig[state.mode].scoreBias,
     28,
@@ -599,43 +650,49 @@ function analyzeTranscript() {
       repeatComplaintCount * 6 +
       (timingCount === 0 ? 16 : 0) +
       (ownershipCount === 0 ? 10 : 0) +
-      (issues.some((item) => item.name === "规则冲突") ? 12 : 0) +
-      (issues.some((item) => item.name === "升级投诉风险") ? 15 : 0),
+      (issues.some((item) => item.name === "规则口径不一致") ? 12 : 0) +
+      (issues.some((item) => item.name === "赔付升级风险") ? 15 : 0) +
+      (issues.some((item) => item.name === "履约状态冲突") ? 8 : 0),
     8,
     96
   );
 
   const metrics = {
-    serviceScore,
+    handlingScore,
     emotionScore,
     riskScore,
     empathyScore: clamp(35 + empathyCount * 18, 20, 96),
-    clarityScore: clamp(40 + timingCount * 16 + ownershipCount * 10, 22, 96),
-    executionScore: clamp(32 + resolutionCount * 14 + timingCount * 10, 18, 97),
-    policyScore: clamp(80 - (issues.some((item) => item.name === "规则冲突") ? 24 : 0) - riskyAgentCount * 10, 28, 95)
+    evidenceScore: clamp(38 + evidenceCount * 10 + ownershipCount * 8 - riskyAgentCount * 8, 20, 96),
+    executionScore: clamp(34 + resolutionCount * 14 + timingCount * 12, 18, 97),
+    policyScore: clamp(
+      82 - (issues.some((item) => item.name === "规则口径不一致") ? 26 : 0) - riskyAgentCount * 10,
+      28,
+      95
+    )
   };
 
-  const riskNodes = extractRiskNodes(turns);
-  const suggestions = buildSuggestions(metrics, issues, riskNodes);
-  const escalations = buildEscalations(metrics, issues, riskNodes);
+  const responsibilityNodes = extractResponsibilityNodes(turns);
+  const suggestions = buildSuggestions(metrics, issues, responsibilityNodes);
+  const escalations = buildEscalations(metrics, issues, responsibilityNodes);
   const evidence = pickEvidence(turns);
   const reply = buildReply(issues, metrics);
-  const traceEntries = buildTraceEntries(metrics, issues, riskNodes, reply, escalations, suggestions);
+  const traceEntries = buildTraceEntries(metrics, issues, responsibilityNodes, evidence, escalations, suggestions, reply);
 
-  const summary = `本次会话聚焦于${issues.length ? issues[0].name : "一般售后处理"}。当前客服在${timingCount > 0 ? "时限承诺" : "时限说明"}和${ownershipCount > 0 ? "问题接手" : "主动接手"}方面${serviceScore >= 72 ? "表现较稳" : "仍有优化空间"}，用户情绪处于${sentimentLabel(emotionScore)}状态，整体风险等级为${riskLabel(riskScore)}。`;
+  const mainIssue = issues.length ? issues[0].name : "一般退款争议";
+  const summary = `本次争议主要集中在${mainIssue}。当前对话已经出现${issues.some((item) => item.name === "规则口径不一致") ? "规则口径冲突" : "退款或履约压力"}信号，${ownershipCount > 0 ? "商家已给出接手动作" : "责任承接仍偏弱"}，买家情绪处于${emotionLabel(emotionScore)}状态，整体争议等级为${riskLabel(riskScore)}。建议优先补齐${issues.some((item) => item.name === "履约状态冲突") || issues.some((item) => item.name === "责任判定待补证") ? "签收、仓储或回传凭证" : "退款节点和到账时点"}后，再给出最终处置结论。`;
   const tags = [
-    ...(issues.length ? issues.map((item) => item.name) : ["通用质检"]),
-    sentimentLabel(emotionScore),
+    ...(issues.length ? issues.map((item) => item.name) : ["通用仲裁"]),
+    emotionLabel(emotionScore),
     riskLabel(riskScore)
   ].slice(0, 5);
-  const report = buildReport(summary, issues, metrics, riskNodes, suggestions, escalations, reply);
+  const report = buildReport(summary, issues, metrics, responsibilityNodes, suggestions, escalations, reply);
 
   turnCountEl.textContent = String(turns.length);
-  turnMixEl.textContent = `客户 ${customerTurns.length} / 客服 ${agentTurns.length}`;
+  turnMixEl.textContent = `买家 ${customerTurns.length} / 商家 ${agentTurns.length}`;
   emotionScoreEl.textContent = String(emotionScore);
-  emotionHintEl.textContent = sentimentLabel(emotionScore);
-  serviceScoreEl.textContent = String(serviceScore);
-  scoreHintEl.textContent = serviceLabel(serviceScore);
+  emotionHintEl.textContent = emotionLabel(emotionScore);
+  serviceScoreEl.textContent = String(handlingScore);
+  scoreHintEl.textContent = handlingLabel(handlingScore);
   riskScoreEl.textContent = String(riskScore);
   riskHintEl.textContent = riskLabel(riskScore);
   summaryMetaEl.textContent = `${modeConfig[state.mode].label} · ${turns.length} 轮会话`;
@@ -644,7 +701,7 @@ function analyzeTranscript() {
 
   renderTags([...new Set(tags)]);
   renderIssues(issues);
-  renderRiskNodes(riskNodes);
+  renderResponsibilityNodes(responsibilityNodes);
   renderSuggestions(suggestions);
   renderEscalations(escalations);
   renderEvidence(evidence);
@@ -678,7 +735,7 @@ function loadCurrentSample() {
 
 function clearTranscript() {
   documentInput.value = "";
-  emptyDashboard("点击“运行工作流”后，这里会生成一段简洁的复盘结论。");
+  emptyDashboard("点击“运行工作流”后，这里会生成一段简洁的仲裁结论。");
 }
 
 async function copyText(text, onSuccess, onFail) {
@@ -729,7 +786,7 @@ copyReportButton.addEventListener("click", () => {
   copyText(
     reportPreviewEl.textContent,
     () => {
-      riskHintEl.textContent = "复盘报告已复制";
+      riskHintEl.textContent = "仲裁报告已复制";
     },
     () => {
       riskHintEl.textContent = "复制失败";
@@ -739,7 +796,7 @@ copyReportButton.addEventListener("click", () => {
 
 documentInput.addEventListener("input", () => {
   if (!normalizeText(documentInput.value)) {
-    emptyDashboard("点击“运行工作流”后，这里会生成一段简洁的复盘结论。");
+    emptyDashboard("点击“运行工作流”后，这里会生成一段简洁的仲裁结论。");
   }
 });
 

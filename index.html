@@ -3,19 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ServicePilot 客服 Multi-Agent 分诊台</title>
+    <title>RefundPilot Multi-Agent 退款争议仲裁台</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <header class="app-header">
         <div>
-          <p class="eyebrow">ServicePilot</p>
-          <h1>客服 Multi-Agent 分诊台</h1>
+          <p class="eyebrow">RefundPilot</p>
+          <h1>Multi-Agent 退款争议仲裁台</h1>
         </div>
         <div class="header-badges">
-          <span class="status-pill">Multi-Agent Demo</span>
-          <span class="status-text">客服质检与复盘原型</span>
+          <span class="status-pill">Dispute Workflow Demo</span>
+          <span class="status-text">电商退款、赔付与责任判断原型</span>
         </div>
       </header>
 
@@ -24,9 +24,9 @@
           <div class="sidebar-block">
             <span class="section-label">演示场景</span>
             <div class="chip-group">
-              <button class="chip active" type="button" data-sample="refund">退款争议</button>
-              <button class="chip" type="button" data-sample="shipping">物流催单</button>
-              <button class="chip" type="button" data-sample="membership">会员投诉</button>
+              <button class="chip active" type="button" data-sample="refundDelay">退款到账延迟</button>
+              <button class="chip" type="button" data-sample="signedDispute">物流签收争议</button>
+              <button class="chip" type="button" data-sample="lateShipment">延迟发货赔付</button>
             </div>
           </div>
 
@@ -41,16 +41,16 @@
 
           <div class="sidebar-block sidebar-input">
             <div class="input-head">
-              <label class="section-label" for="documentInput">原始对话</label>
+              <label class="section-label" for="documentInput">原始争议对话</label>
               <div class="meta-badges">
-                <span id="sceneBadge" class="meta-badge">退款争议</span>
-                <span id="modeBadge" class="meta-badge subtle-badge">标准质检</span>
+                <span id="sceneBadge" class="meta-badge">退款到账延迟</span>
+                <span id="modeBadge" class="meta-badge subtle-badge">标准仲裁</span>
               </div>
             </div>
             <textarea
               id="documentInput"
               class="document-input"
-              placeholder="客户 09:12：我申请退款四天了还没到账。&#10;客服 09:13：抱歉让您久等了，我先帮您核实。"
+              placeholder="买家 09:12：我申请退款三天了，页面写的是 48 小时到账。&#10;商家 09:13：抱歉让您久等了，我先帮您核实退款单状态。"
             ></textarea>
           </div>
 
@@ -65,11 +65,11 @@
           <article class="card summary-card">
             <div class="summary-main">
               <div class="summary-head">
-                <span class="section-label">主管结论</span>
-                <p id="summaryMeta" class="summary-meta">尚未开始运行</p>
+                <span class="section-label">主仲裁结论</span>
+                <p id="summaryMeta" class="summary-meta">尚未开始仲裁</p>
               </div>
               <p id="summaryOutput" class="summary-text empty-text">
-                点击“运行工作流”后，这里会生成一段简洁的复盘结论。
+                点击“运行工作流”后，这里会生成一段简洁的仲裁结论。
               </p>
             </div>
             <div class="summary-side">
@@ -83,20 +83,20 @@
             <article class="stat-card">
               <span class="stat-label">会话轮次</span>
               <strong id="turnCount">0</strong>
-              <span id="turnMix" class="stat-foot">客户 0 / 客服 0</span>
+              <span id="turnMix" class="stat-foot">买家 0 / 商家 0</span>
             </article>
             <article class="stat-card">
-              <span class="stat-label">客户情绪</span>
+              <span class="stat-label">买家情绪</span>
               <strong id="emotionScore">0</strong>
               <span id="emotionHint" class="stat-foot">等待分析</span>
             </article>
             <article class="stat-card">
-              <span class="stat-label">服务得分</span>
+              <span class="stat-label">履约得分</span>
               <strong id="serviceScore">0</strong>
               <span id="scoreHint" class="stat-foot">等待分析</span>
             </article>
             <article class="stat-card">
-              <span class="stat-label">风险等级</span>
+              <span class="stat-label">争议等级</span>
               <strong id="riskScore">0</strong>
               <span id="riskHint" class="stat-foot">等待分析</span>
             </article>
@@ -115,7 +115,7 @@
               <section id="panel-overview" class="tab-panel active overview-grid">
                 <article class="panel-card">
                   <div class="panel-head">
-                    <h2>问题分类</h2>
+                    <h2>争议分类</h2>
                   </div>
                   <div id="issueList" class="compact-list">
                     <div class="empty-block">暂无分类</div>
@@ -124,19 +124,19 @@
 
                 <article class="panel-card">
                   <div class="panel-head">
-                    <h2>风险节点</h2>
+                    <h2>责任线索</h2>
                   </div>
                   <div id="riskList" class="compact-list">
-                    <div class="empty-block">暂无风险节点</div>
+                    <div class="empty-block">暂无责任线索</div>
                   </div>
                 </article>
 
                 <article class="panel-card">
                   <div class="panel-head">
-                    <h2>改进建议</h2>
+                    <h2>处置建议</h2>
                   </div>
                   <div id="suggestionList" class="compact-list">
-                    <div class="empty-block">暂无改进建议</div>
+                    <div class="empty-block">暂无处置建议</div>
                   </div>
                 </article>
 
@@ -152,7 +152,7 @@
               <section id="panel-workflow" class="tab-panel workflow-layout">
                 <article class="panel-card workflow-card">
                   <div class="panel-head">
-                    <h2>Agent 链路</h2>
+                    <h2>仲裁链路</h2>
                   </div>
                   <div id="agentLane" class="agent-lane">
                     <div class="empty-block">暂无链路</div>
@@ -170,16 +170,16 @@
 
                 <article class="panel-card evidence-card">
                   <div class="panel-head">
-                    <h2>关键证据句</h2>
+                    <h2>核心证据片段</h2>
                   </div>
                   <div id="evidenceList" class="compact-list">
-                    <div class="empty-block">暂无关键证据</div>
+                    <div class="empty-block">暂无核心证据</div>
                   </div>
                 </article>
 
                 <article class="panel-card metric-card">
                   <div class="panel-head">
-                    <h2>服务维度评分</h2>
+                    <h2>履约维度评分</h2>
                   </div>
                   <div id="signalBoard" class="signal-board">
                     <div class="empty-block">暂无评分</div>
@@ -199,10 +199,10 @@
 
                 <article class="panel-card report-panel">
                   <div class="panel-head">
-                    <h2>复盘报告</h2>
+                    <h2>仲裁报告</h2>
                     <button id="copyReportButton" class="secondary-button tiny-button" type="button">复制</button>
                   </div>
-                  <pre id="reportPreview" class="report-preview">等待生成复盘报告</pre>
+                  <pre id="reportPreview" class="report-preview">等待生成仲裁报告</pre>
                 </article>
               </section>
             </div>
